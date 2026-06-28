@@ -65,6 +65,8 @@ def get_candidates(cur: sqlite3.Cursor, allow_legendary: bool, allow_mythical: b
         SELECT p.id, p.identifier, p.species_id
         FROM pokemon p
         JOIN pokemon_species ps ON p.species_id = ps.id
+        JOIN pokemon_dex_numbers dn
+          ON dn.species_id = ps.id AND dn.pokedex_id = '36'
         WHERE p.is_default = '1'
           AND ps.id IS NOT NULL
           {" ".join(extra)}

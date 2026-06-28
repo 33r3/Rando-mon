@@ -24,6 +24,7 @@ TABLES = [
     "types",
     "pokemon_species",
     "pokemon_forms",
+    "pokemon_dex_numbers",
 ]
 
 
@@ -31,7 +32,8 @@ def fetch_csv(filename: str) -> list:
     url = BASE_URL + filename
     resp = requests.get(url, timeout=60)
     resp.raise_for_status()
-    return list(csv.reader(io.StringIO(resp.text)))
+    # Strip BOM that some PokeAPI CSVs include on the first field
+    return list(csv.reader(io.StringIO(resp.text.lstrip('﻿'))))
 
 
 def load_table(cur: sqlite3.Cursor, table: str) -> int:
@@ -68,6 +70,7 @@ def main():
     # Lightweight indexes for the queries champ_team_gen.py runs
     cur.execute('CREATE INDEX idx_pt_pokemon ON pokemon_types(pokemon_id)')
     cur.execute('CREATE INDEX idx_pf_pokemon ON pokemon_forms(pokemon_id)')
+    cur.execute('CREATE INDEX idx_dex_pokedex ON pokemon_dex_numbers(pokedex_id)')
 
     con.commit()
     con.close()
