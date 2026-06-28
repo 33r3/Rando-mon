@@ -129,6 +129,28 @@ def api_generate():
     )
 
 
+@app.route("/api/roster")
+def api_roster():
+    """Lightweight list of all Champions-eligible pokemon for the spin animation."""
+    con = _open_db()
+    try:
+        rows = con.execute("""
+            SELECT p.id, p.identifier
+            FROM pokemon p
+            JOIN pokemon_species ps ON p.species_id = ps.id
+            JOIN pokemon_dex_numbers dn
+              ON dn.species_id = ps.id AND dn.pokedex_id = '36'
+            WHERE p.is_default = '1'
+            ORDER BY CAST(p.id AS INTEGER)
+        """).fetchall()
+    finally:
+        con.close()
+    return jsonify([
+        {"id": int(r[0]), "name": r[1].replace("-", " ").title()}
+        for r in rows
+    ])
+
+
 @app.route("/api/team/<token>")
 def api_decode(token):
     try:

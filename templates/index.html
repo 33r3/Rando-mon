@@ -3,242 +3,289 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rando-mon — Champion Team Generator</title>
+  <title>Rando-mon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset & base ── */
+    /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0f0f1a;
-      --surface:   #1c1c2e;
-      --border:    #2e2e4a;
-      --text:      #e8e8f0;
-      --muted:     #8888aa;
-      --accent:    #7c6fcd;
-      --accent-hi: #a89cf0;
-      --gold:      #f5c842;
-      --core-line: #2a2a40;
+      --bg:        #0f1729;
+      --surface:   #1a2440;
+      --surface-2: #1f2b4a;
+      --border:    rgba(255,255,255,0.07);
+      --text:      #f0f4ff;
+      --muted:     #5a6a8a;
+      --accent:    #818cf8;
+      --accent-dim:#4f547a;
+      --gold:      #f59e0b;
+      --coral:     #f87171;
+      --shadow:    0 4px 24px rgba(0,0,0,0.4);
     }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1rem 4rem;
+      padding: 3rem 1.25rem 5rem;
     }
 
     /* ── Header ── */
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
+    header { text-align: center; margin-bottom: 2.75rem; }
+
     header h1 {
-      font-size: 2rem;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--accent-hi);
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      color: var(--text);
     }
+
     header p {
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
       color: var(--muted);
-      margin-top: .3rem;
-      font-size: .9rem;
-      letter-spacing: .06em;
+      margin-top: .4rem;
     }
 
     /* ── Generate button ── */
     #generate-btn {
       display: block;
-      margin: 0 auto 2.5rem;
-      padding: .75rem 2.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: .08em;
+      margin: 0 auto 3rem;
+      padding: .8rem 3rem;
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .12em;
       text-transform: uppercase;
       background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background .15s, transform .1s;
+      transition: background .15s, opacity .15s, transform .1s;
+      box-shadow: 0 0 24px rgba(129,140,248,.25);
     }
-    #generate-btn:hover  { background: var(--accent-hi); }
+    #generate-btn:hover  { background: #9aa3ff; }
     #generate-btn:active { transform: scale(.97); }
-    #generate-btn:disabled { opacity: .5; cursor: default; }
+    #generate-btn:disabled { opacity: .45; cursor: default; }
 
-    /* ── Main card ── */
-    #output {
-      width: 100%;
-      max-width: 600px;
-    }
-    #output:empty { display: none; }
-
-    .trio-banner {
-      font-size: .75rem;
+    /* ── Trio label ── */
+    #trio-label {
+      font-size: .72rem;
       font-weight: 700;
-      letter-spacing: .12em;
+      letter-spacing: .18em;
       text-transform: uppercase;
       color: var(--muted);
-      padding: .5rem .75rem;
-      background: var(--core-line);
-      border-radius: 6px 6px 0 0;
+      text-align: center;
+      margin-bottom: 1.25rem;
+      min-height: 1em;
+      transition: opacity .3s;
     }
-    .trio-banner span { color: var(--accent-hi); }
+    #trio-label span { color: var(--accent); }
 
-    .team-list {
+    /* ── Slot grid ── */
+    #slot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .9rem;
+      width: 100%;
+      max-width: 640px;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 520px) {
+      #slot-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── Slot card ── */
+    .slot-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      overflow: hidden;
-      margin-bottom: 1.25rem;
-    }
-
-    .mon-row {
+      border-radius: 14px;
+      padding: 1.1rem .75rem .9rem;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: .9rem;
-      padding: .6rem .9rem;
-      border-bottom: 1px solid var(--border);
-      transition: background .12s;
+      gap: .5rem;
+      min-height: 160px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .2s;
     }
-    .mon-row:last-child { border-bottom: none; }
-    .mon-row:hover { background: rgba(124,111,205,.08); }
-    .mon-row.free-slot { opacity: .85; }
 
-    .sprite {
-      width: 56px;
-      height: 56px;
+    .slot-card.idle {
+      opacity: .35;
+    }
+
+    .slot-card.spinning {
+      opacity: 1;
+    }
+
+    .slot-card.locked {
+      opacity: 1;
+      animation: lock-flash .5s ease-out forwards;
+    }
+
+    @keyframes lock-flash {
+      0%   { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(129,140,248,.5); }
+      100% { border-color: var(--border); box-shadow: none; }
+    }
+
+    /* Sprite */
+    .slot-sprite {
+      width: 72px;
+      height: 72px;
       image-rendering: pixelated;
       flex-shrink: 0;
     }
-    .sprite-placeholder {
-      width: 56px; height: 56px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      background: var(--border);
-    }
+    .slot-sprite.dim { opacity: .45; filter: blur(1px); }
 
-    .mon-info { flex: 1; min-width: 0; }
-
-    .mon-name {
-      font-weight: 600;
-      font-size: 1rem;
+    /* Name */
+    .slot-name {
+      font-size: .85rem;
+      font-weight: 700;
+      text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 100%;
+      color: var(--text);
     }
+    .slot-name.dim { opacity: .35; }
+
     .mega-star {
       color: var(--gold);
-      margin-left: .3em;
-      font-size: .85em;
-      title: "Can Mega Evolve";
+      margin-left: .25em;
+      font-size: .75em;
     }
 
-    .type-row { display: flex; gap: .35rem; margin-top: .3rem; flex-wrap: wrap; }
+    /* Types */
+    .slot-types {
+      display: flex;
+      gap: .3rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      min-height: 1.5rem;
+    }
+
     .type-badge {
-      font-size: .68rem;
+      font-size: .62rem;
       font-weight: 700;
-      letter-spacing: .06em;
+      letter-spacing: .07em;
       text-transform: uppercase;
-      padding: .18em .55em;
-      border-radius: 4px;
+      padding: .2em .55em;
+      border-radius: 5px;
       color: #fff;
-      text-shadow: 0 1px 2px rgba(0,0,0,.4);
+      text-shadow: 0 1px 2px rgba(0,0,0,.45);
     }
 
+    /* Slot tag (core / free) */
     .slot-tag {
-      font-size: .65rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      flex-shrink: 0;
-      align-self: flex-start;
-      margin-top: .2rem;
-    }
-    .slot-tag.core { color: var(--accent-hi); }
-
-    /* ── Permalink section ── */
-    #link-section {
-      display: none;
-      width: 100%;
-      max-width: 600px;
-      margin-top: .25rem;
-    }
-    #link-section label {
-      display: block;
-      font-size: .75rem;
+      position: absolute;
+      top: .55rem;
+      right: .65rem;
+      font-size: .58rem;
+      font-weight: 700;
       letter-spacing: .1em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: .4rem;
     }
-    .link-row {
-      display: flex;
-      gap: .5rem;
+    .slot-tag.core { color: var(--accent); }
+
+    /* ── Permalink ── */
+    #link-section {
+      display: none;
+      width: 100%;
+      max-width: 640px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .4s, transform .4s;
     }
+    #link-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    #link-section label {
+      display: block;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .5rem;
+    }
+
+    .link-row { display: flex; gap: .5rem; }
+
     #link-input {
       flex: 1;
+      min-width: 0;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--text);
-      font-size: .875rem;
-      font-family: monospace;
-      padding: .5rem .75rem;
+      font-size: .8rem;
+      font-family: 'Inter', monospace;
+      padding: .6rem .85rem;
       outline: none;
-      min-width: 0;
     }
     #link-input:focus { border-color: var(--accent); }
 
     #copy-btn {
-      padding: .5rem 1rem;
+      padding: .6rem 1.1rem;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--accent-hi);
-      font-size: .875rem;
-      font-weight: 600;
+      border-radius: 8px;
+      color: var(--accent);
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .06em;
       cursor: pointer;
       white-space: nowrap;
-      transition: background .12s, border-color .12s;
+      transition: background .12s, border-color .12s, color .12s;
       flex-shrink: 0;
     }
-    #copy-btn:hover { background: var(--border); border-color: var(--accent); }
-    #copy-btn.copied { color: #6fcf97; border-color: #6fcf97; }
+    #copy-btn:hover { background: var(--surface-2); border-color: var(--accent); }
+    #copy-btn.copied { color: #6ee7b7; border-color: #6ee7b7; }
 
     /* ── Error ── */
     #error-msg {
       display: none;
-      color: #e07070;
-      font-size: .9rem;
+      color: var(--coral);
+      font-size: .85rem;
       text-align: center;
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
     }
 
-    /* ── Type colours (standard Pokémon palette) ── */
+    /* ── Type colours ── */
     .t-normal   { background: #9099a1; }
     .t-fire     { background: #e8622a; }
     .t-water    { background: #4c90d8; }
-    .t-electric { background: #f2c029; color: #333 !important; text-shadow: none !important; }
+    .t-electric { background: #d4a800; }
     .t-grass    { background: #4dab3e; }
-    .t-ice      { background: #70cfc1; color: #333 !important; text-shadow: none !important; }
+    .t-ice      { background: #5db8b0; }
     .t-fighting { background: #ce4069; }
     .t-poison   { background: #a65cc5; }
-    .t-ground   { background: #cf7a43; }
-    .t-flying   { background: #8fa8dd; }
+    .t-ground   { background: #c07030; }
+    .t-flying   { background: #7090d0; }
     .t-psychic  { background: #e8647e; }
-    .t-bug      { background: #90be42; color: #333 !important; text-shadow: none !important; }
-    .t-rock     { background: #c9b959; color: #333 !important; text-shadow: none !important; }
+    .t-bug      { background: #7a9e1a; }
+    .t-rock     { background: #b8a030; }
     .t-ghost    { background: #546aad; }
     .t-dragon   { background: #0a6dc4; }
-    .t-dark     { background: #595369; }
-    .t-steel    { background: #5a8ea2; }
-    .t-fairy    { background: #e685b5; }
-    .t-shadow   { background: #6c4a9e; }
+    .t-dark     { background: #4a4060; }
+    .t-steel    { background: #4a7a8a; }
+    .t-fairy    { background: #d060a0; }
   </style>
 </head>
 <body>
@@ -252,7 +299,16 @@
 
 <p id="error-msg"></p>
 
-<div id="output"></div>
+<div id="trio-label"></div>
+
+<div id="slot-grid">
+  <div class="slot-card idle" data-index="0"><img class="slot-sprite dim" src="" alt="" /><div class="slot-name dim">—</div><div class="slot-types"></div></div>
+  <div class="slot-card idle" data-index="1"><img class="slot-sprite dim" src="" alt="" /><div class="slot-name dim">—</div><div class="slot-types"></div></div>
+  <div class="slot-card idle" data-index="2"><img class="slot-sprite dim" src="" alt="" /><div class="slot-name dim">—</div><div class="slot-types"></div></div>
+  <div class="slot-card idle" data-index="3"><img class="slot-sprite dim" src="" alt="" /><div class="slot-name dim">—</div><div class="slot-types"></div></div>
+  <div class="slot-card idle" data-index="4"><img class="slot-sprite dim" src="" alt="" /><div class="slot-name dim">—</div><div class="slot-types"></div></div>
+  <div class="slot-card idle" data-index="5"><img class="slot-sprite dim" src="" alt="" /><div class="slot-name dim">—</div><div class="slot-types"></div></div>
+</div>
 
 <div id="link-section">
   <label for="link-input">Permalink</label>
@@ -263,91 +319,169 @@
 </div>
 
 <script>
-  const SPRITE_BASE =
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+  const SPRITE = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 
-  const generateBtn  = document.getElementById('generate-btn');
-  const output       = document.getElementById('output');
-  const linkSection  = document.getElementById('link-section');
-  const linkInput    = document.getElementById('link-input');
-  const copyBtn      = document.getElementById('copy-btn');
-  const errorMsg     = document.getElementById('error-msg');
+  const generateBtn = document.getElementById('generate-btn');
+  const trioLabel   = document.getElementById('trio-label');
+  const slotCards   = Array.from(document.querySelectorAll('.slot-card'));
+  const linkSection = document.getElementById('link-section');
+  const linkInput   = document.getElementById('link-input');
+  const copyBtn     = document.getElementById('copy-btn');
+  const errorMsg    = document.getElementById('error-msg');
 
-  // ── Rendering ──────────────────────────────────────────────────────────
+  // Decel schedule: intervals between frames as the slot slows down, then locks
+  const DECEL_STEPS = [100, 160, 240, 360, 520];
+  const WARMUP_MS   = 700;   // all slots spin fast before first starts decelerating
+  const STAGGER_MS  = 320;   // pause after each slot locks before next starts
 
-  function typeBadge(type) {
-    const span = document.createElement('span');
-    span.className = `type-badge t-${type}`;
-    span.textContent = type;
-    return span;
-  }
+  let roster = [];   // [{id, name}, …] from /api/roster
 
-  function monRow(mon) {
-    const row = document.createElement('div');
-    row.className = 'mon-row' + (mon.slot === 'free' ? ' free-slot' : '');
+  // ── Roster ──────────────────────────────────────────────────────────────
 
-    const img = document.createElement('img');
-    img.className = 'sprite';
-    img.src = `${SPRITE_BASE}${mon.id}.png`;
-    img.alt = mon.name;
-    img.onerror = () => {
-      const ph = document.createElement('div');
-      ph.className = 'sprite-placeholder';
-      img.replaceWith(ph);
-    };
-    row.appendChild(img);
-
-    const info = document.createElement('div');
-    info.className = 'mon-info';
-
-    const nameLine = document.createElement('div');
-    nameLine.className = 'mon-name';
-    nameLine.textContent = mon.name;
-    if (mon.is_mega_capable) {
-      const star = document.createElement('span');
-      star.className = 'mega-star';
-      star.textContent = '★';
-      star.title = 'Can Mega Evolve';
-      nameLine.appendChild(star);
+  async function loadRoster() {
+    try {
+      const res = await fetch('/api/roster');
+      roster = await res.json();
+    } catch (e) {
+      console.warn('Roster fetch failed:', e);
     }
-    info.appendChild(nameLine);
+  }
 
-    const typeRow = document.createElement('div');
-    typeRow.className = 'type-row';
-    mon.types.forEach(t => typeRow.appendChild(typeBadge(t)));
-    info.appendChild(typeRow);
+  function randomRosterEntry() {
+    return roster[Math.floor(Math.random() * roster.length)];
+  }
 
-    row.appendChild(info);
+  // ── Slot rendering ───────────────────────────────────────────────────────
 
+  function renderSpin(card, entry) {
+    const sprite = card.querySelector('.slot-sprite');
+    const name   = card.querySelector('.slot-name');
+    sprite.src = SPRITE(entry.id);
+    sprite.alt = entry.name;
+    name.textContent = entry.name;
+  }
+
+  function renderLocked(card, mon) {
+    const sprite = card.querySelector('.slot-sprite');
+    const name   = card.querySelector('.slot-name');
+    const types  = card.querySelector('.slot-types');
+    const tag    = card.querySelector('.slot-tag');
+
+    sprite.classList.remove('dim');
+    name.classList.remove('dim');
+
+    sprite.src = SPRITE(mon.id);
+    sprite.alt = mon.name;
+
+    name.innerHTML = mon.name + (mon.is_mega_capable ? '<span class="mega-star" title="Can Mega Evolve">★</span>' : '');
+
+    types.innerHTML = '';
+    mon.types.forEach(t => {
+      const b = document.createElement('span');
+      b.className = `type-badge t-${t}`;
+      b.textContent = t;
+      types.appendChild(b);
+    });
+
+    if (tag) {
+      tag.className = `slot-tag ${mon.slot}`;
+      tag.textContent = mon.slot;
+    }
+
+    card.classList.remove('spinning');
+    card.classList.add('locked');
+  }
+
+  // ── Animation ────────────────────────────────────────────────────────────
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function startFastSpin(card) {
+    card.classList.remove('idle', 'locked');
+    card.classList.add('spinning');
+    card.querySelector('.slot-sprite').classList.add('dim');
+    card.querySelector('.slot-name').classList.add('dim');
+    card.querySelector('.slot-types').innerHTML = '';
+    const existingTag = card.querySelector('.slot-tag');
+    if (existingTag) existingTag.remove();
+
+    let handle;
+    const tick = () => {
+      if (roster.length) renderSpin(card, randomRosterEntry());
+      handle = setTimeout(tick, 65);
+    };
+    tick();
+    return () => clearTimeout(handle);
+  }
+
+  async function decelAndLock(card, finalMon) {
+    for (const delay of DECEL_STEPS) {
+      if (roster.length) renderSpin(card, randomRosterEntry());
+      await sleep(delay);
+    }
+
+    // Insert slot tag before locking
     const tag = document.createElement('span');
-    tag.className = `slot-tag ${mon.slot}`;
-    tag.textContent = mon.slot;
-    row.appendChild(tag);
+    tag.className = 'slot-tag';
+    card.appendChild(tag);
 
-    return row;
+    renderLocked(card, finalMon);
   }
 
-  function renderTeam(data) {
-    output.innerHTML = '';
+  async function runSpinReveal(team, trio) {
+    // Start all spinning at once
+    const stopSpinners = slotCards.map(c => startFastSpin(c));
 
-    const banner = document.createElement('div');
-    banner.className = 'trio-banner';
-    const trioLabel = data.trio
-      .map(t => t.charAt(0).toUpperCase() + t.slice(1))
-      .join(' / ');
-    banner.innerHTML = `Core trio &mdash; <span>${trioLabel}</span>`;
-    output.appendChild(banner);
+    // Show trio label (hidden until reveal starts)
+    if (trio) {
+      trioLabel.innerHTML =
+        'Core trio &mdash; <span>' +
+        trio.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(' / ') +
+        '</span>';
+    } else {
+      trioLabel.textContent = 'Shared team';
+    }
 
-    const list = document.createElement('div');
-    list.className = 'team-list';
-    data.team.forEach(mon => list.appendChild(monRow(mon)));
-    output.appendChild(list);
+    await sleep(WARMUP_MS);
+
+    for (let i = 0; i < team.length; i++) {
+      stopSpinners[i]();
+      await decelAndLock(slotCards[i], team[i]);
+      if (i < team.length - 1) await sleep(STAGGER_MS);
+    }
+
+    // Reveal permalink after last slot lands
+    linkSection.style.display = 'block';
+    requestAnimationFrame(() => linkSection.classList.add('visible'));
   }
+
+  // ── Direct load (no animation) for shared links ──────────────────────────
+
+  function renderDirect(team, trio) {
+    trioLabel.innerHTML = trio
+      ? 'Core trio &mdash; <span>' +
+        trio.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(' / ') +
+        '</span>'
+      : 'Shared team';
+
+    team.forEach((mon, i) => {
+      const card = slotCards[i];
+      card.classList.remove('idle');
+      const tag = document.createElement('span');
+      tag.className = 'slot-tag';
+      card.appendChild(tag);
+      renderLocked(card, mon);
+    });
+
+    linkSection.style.display = 'block';
+    requestAnimationFrame(() => linkSection.classList.add('visible'));
+  }
+
+  // ── Fetch helpers ─────────────────────────────────────────────────────────
 
   function setLink(token) {
     const url = `${location.origin}/team/${token}`;
     linkInput.value = url;
-    linkSection.style.display = 'block';
     history.replaceState(null, '', `/team/${token}`);
   }
 
@@ -355,92 +489,69 @@
     errorMsg.textContent = msg;
     errorMsg.style.display = 'block';
   }
-
   function clearError() {
     errorMsg.style.display = 'none';
     errorMsg.textContent = '';
   }
 
-  // ── Fetch helpers ──────────────────────────────────────────────────────
-
-  async function fetchTeam(url) {
-    clearError();
-    generateBtn.disabled = true;
-    generateBtn.textContent = 'Generating…';
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.description || `HTTP ${res.status}`);
-      }
-      return await res.json();
-    } finally {
-      generateBtn.disabled = false;
-      generateBtn.textContent = 'Generate Team';
-    }
-  }
-
   async function generate() {
+    clearError();
+    linkSection.classList.remove('visible');
+    linkSection.style.display = 'none';
+    generateBtn.disabled = true;
+
+    let data;
     try {
-      const data = await fetchTeam('/api/team');
-      renderTeam(data);
-      setLink(data.token);
+      const res = await fetch('/api/team');
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).description || `HTTP ${res.status}`);
+      data = await res.json();
     } catch (err) {
       showError(`Could not generate team: ${err.message}`);
+      generateBtn.disabled = false;
+      return;
     }
+
+    setLink(data.token);
+    await runSpinReveal(data.team, data.trio);
+    generateBtn.disabled = false;
   }
 
   async function loadToken(token) {
+    let data;
     try {
-      const data = await fetchTeam(`/api/team/${token}`);
-      // Reconstruct trio label from first 3 mons (unknown on decode path)
-      data.trio = null;
-      renderTeamFromDecode(data);
-      setLink(data.token);
+      const res = await fetch(`/api/team/${token}`);
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).description || `HTTP ${res.status}`);
+      data = await res.json();
     } catch (err) {
-      showError(`Could not load team from link: ${err.message}`);
+      showError(`Could not load team: ${err.message}`);
+      return;
     }
+
+    setLink(data.token);
+    renderDirect(data.team, null);
   }
 
-  function renderTeamFromDecode(data) {
-    output.innerHTML = '';
-
-    const banner = document.createElement('div');
-    banner.className = 'trio-banner';
-    banner.innerHTML = 'Shared team';
-    output.appendChild(banner);
-
-    const list = document.createElement('div');
-    list.className = 'team-list';
-    data.team.forEach(mon => list.appendChild(monRow(mon)));
-    output.appendChild(list);
-  }
-
-  // ── Copy button ────────────────────────────────────────────────────────
+  // ── Copy ─────────────────────────────────────────────────────────────────
 
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(linkInput.value);
-      copyBtn.textContent = 'Copied!';
-      copyBtn.classList.add('copied');
-      setTimeout(() => {
-        copyBtn.textContent = 'Copy';
-        copyBtn.classList.remove('copied');
-      }, 2000);
     } catch {
       linkInput.select();
       document.execCommand('copy');
     }
+    copyBtn.textContent = 'Copied!';
+    copyBtn.classList.add('copied');
+    setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
   });
 
-  // ── Init ───────────────────────────────────────────────────────────────
+  // ── Init ─────────────────────────────────────────────────────────────────
 
   generateBtn.addEventListener('click', generate);
+  loadRoster();
 
   const parts = location.pathname.split('/');
-  if (parts[1] === 'team' && parts[2]) {
-    loadToken(parts[2]);
-  }
+  if (parts[1] === 'team' && parts[2]) loadToken(parts[2]);
 </script>
 </body>
 </html>
