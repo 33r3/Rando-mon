@@ -60,6 +60,8 @@ EXTRA_FORMS = {
     10242,  # goodra-hisui
     10243,  # avalugg-hisui
     10244,  # decidueye-hisui
+    # Floette Eternal (added to Champions)
+    10061,
     # Basculegion female
     10248,
     # Tauros Paldean breeds (Fighting, Fire/Fighting, Water/Fighting)
