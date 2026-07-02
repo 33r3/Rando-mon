@@ -87,15 +87,27 @@ def display_name(identifier: str) -> str:
 # Data loading
 # ---------------------------------------------------------------------------
 
-def _mega_capable_species(cur: sqlite3.Cursor) -> set:
-    """Return set of species_ids that have at least one mega form."""
+# Pokemon IDs that share a species with a mega form but cannot themselves mega evolve.
+# Needed when a species has multiple base forms and only one can mega.
+_MEGA_EXCLUSIONS = {
+    670,   # floette — only floette-eternal (10061) can mega, not regular floette
+}
+
+
+def _mega_capable_pokemon(cur: sqlite3.Cursor) -> set:
+    """Return set of pokemon IDs whose specific form can mega evolve."""
+    # For each mega form, find all non-mega base pokemon of the same species
     rows = cur.execute("""
-        SELECT DISTINCT CAST(p.species_id AS INTEGER)
+        SELECT DISTINCT CAST(p_base.id AS INTEGER)
         FROM pokemon_forms pf
-        JOIN pokemon p ON pf.pokemon_id = p.id
+        JOIN pokemon p_mega ON pf.pokemon_id = p_mega.id
+        JOIN pokemon p_base ON CAST(p_base.species_id AS INTEGER) = CAST(p_mega.species_id AS INTEGER)
         WHERE pf.is_mega = '1'
+          AND p_base.id NOT IN (
+              SELECT pf2.pokemon_id FROM pokemon_forms pf2 WHERE pf2.is_mega = '1'
+          )
     """).fetchall()
-    return {r[0] for r in rows}
+    return {r[0] for r in rows} - _MEGA_EXCLUSIONS
 
 
 def get_candidates(cur: sqlite3.Cursor, allow_legendary: bool, allow_mythical: bool) -> list:
@@ -109,7 +121,7 @@ def get_candidates(cur: sqlite3.Cursor, allow_legendary: bool, allow_mythical: b
     if not allow_mythical:
         extra.append("AND ps.is_mythical = '0'")
 
-    mega_species = _mega_capable_species(cur)
+    mega_pokemon = _mega_capable_pokemon(cur)
 
     extra_ids = ", ".join(str(i) for i in sorted(EXTRA_FORMS))
     rows = cur.execute(f"""
@@ -138,7 +150,7 @@ def get_candidates(cur: sqlite3.Cursor, allow_legendary: bool, allow_mythical: b
             "identifier": ident,
             "species_id": int(species_id),
             "types": [r[0] for r in type_rows],
-            "is_mega_capable": int(species_id) in mega_species,
+            "is_mega_capable": int(pid) in mega_pokemon,
         })
 
     return candidates

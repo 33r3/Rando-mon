@@ -51,11 +51,13 @@ def _pokemon_row(cur: sqlite3.Cursor, pid: int, slot_index: int) -> dict:
         ).fetchall()
     ]
 
-    mega_capable = bool(
+    from champ_team_gen import _MEGA_EXCLUSIONS
+    mega_capable = (pid not in _MEGA_EXCLUSIONS) and bool(
         cur.execute(
             """SELECT 1 FROM pokemon_forms pf
-               JOIN pokemon p ON pf.pokemon_id = p.id
-               WHERE p.species_id = (SELECT species_id FROM pokemon WHERE id = ?)
+               JOIN pokemon p_mega ON pf.pokemon_id = p_mega.id
+               JOIN pokemon p_base ON CAST(p_base.species_id AS INTEGER) = CAST(p_mega.species_id AS INTEGER)
+               WHERE CAST(p_base.id AS INTEGER) = ?
                  AND pf.is_mega = '1'
                LIMIT 1""",
             (pid,),
