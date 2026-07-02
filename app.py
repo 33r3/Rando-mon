@@ -20,7 +20,7 @@ import sys
 
 from flask import Flask, abort, jsonify, render_template, request
 
-from champ_team_gen import CORE_TRIOS, build_team
+from champ_team_gen import CORE_TRIOS, build_team, display_name
 from team_link import decode, encode
 
 app = Flask(__name__)
@@ -64,7 +64,7 @@ def _pokemon_row(cur: sqlite3.Cursor, pid: int, slot_index: int) -> dict:
 
     return {
         "id": pid,
-        "name": row[0].replace("-", " ").title(),
+        "name": display_name(row[0]),
         "types": types,
         "is_mega_capable": mega_capable,
         "slot": "core" if slot_index < 3 else "free",
@@ -117,7 +117,7 @@ def api_generate():
             "team": [
                 {
                     "id": m["id"],
-                    "name": m["identifier"].replace("-", " ").title(),
+                    "name": display_name(m["identifier"]),
                     "types": m["types"],
                     "is_mega_capable": m["is_mega_capable"],
                     "slot": "core" if i < 3 else "free",
@@ -146,7 +146,7 @@ def api_roster():
     finally:
         con.close()
     return jsonify([
-        {"id": int(r[0]), "name": r[1].replace("-", " ").title()}
+        {"id": int(r[0]), "name": display_name(r[1])}
         for r in rows
     ])
 

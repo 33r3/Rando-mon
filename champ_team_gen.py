@@ -32,6 +32,54 @@ CORE_TRIOS = {
 
 MEGA_WEIGHT = 4  # draw multiplier for mega-capable pokemon
 
+# Non-default forms that are genuine team choices in Champions.
+# Excludes megas, gmax, battle-only, totem, and cosmetic variants.
+EXTRA_FORMS = {
+    # Rotom appliance forms (each has a unique typing)
+    10008, 10009, 10010, 10011, 10012,
+    # Meowstic female (different learnset)
+    10025,
+    # Gourgeist sizes
+    10030, 10031, 10032,
+    # Regional variants — Alolan
+    10100,  # raichu-alola
+    10104,  # ninetales-alola
+    # Lycanroc alternate forms
+    10126,  # lycanroc-midnight
+    10152,  # lycanroc-dusk
+    # Regional variants — Galarian
+    10165,  # slowbro-galar
+    10172,  # slowking-galar
+    10180,  # stunfisk-galar
+    # Regional variants — Hisuian
+    10230,  # arcanine-hisui
+    10233,  # typhlosion-hisui
+    10234,  # qwilfish-hisui
+    10236,  # samurott-hisui
+    10239,  # zoroark-hisui
+    10242,  # goodra-hisui
+    10243,  # avalugg-hisui
+    10244,  # decidueye-hisui
+    # Basculegion female
+    10248,
+    # Tauros Paldean breeds (Fighting, Fire/Fighting, Water/Fighting)
+    10250, 10251, 10252,
+}
+
+# Identifiers whose default form-suffix adds no useful information.
+_STRIP_SUFFIXES = {
+    'aegislash-shield':       'Aegislash',
+    'mimikyu-disguised':      'Mimikyu',
+    'morpeko-full-belly':     'Morpeko',
+    'palafin-zero':           'Palafin',
+    'maushold-family-of-four': 'Maushold',
+    'pyroar-male':            'Pyroar',
+}
+
+
+def display_name(identifier: str) -> str:
+    return _STRIP_SUFFIXES.get(identifier, identifier.replace('-', ' ').title())
+
 
 # ---------------------------------------------------------------------------
 # Data loading
@@ -61,13 +109,14 @@ def get_candidates(cur: sqlite3.Cursor, allow_legendary: bool, allow_mythical: b
 
     mega_species = _mega_capable_species(cur)
 
+    extra_ids = ", ".join(str(i) for i in sorted(EXTRA_FORMS))
     rows = cur.execute(f"""
         SELECT p.id, p.identifier, p.species_id
         FROM pokemon p
         JOIN pokemon_species ps ON p.species_id = ps.id
         JOIN pokemon_dex_numbers dn
           ON dn.species_id = ps.id AND dn.pokedex_id = '36'
-        WHERE p.is_default = '1'
+        WHERE (p.is_default = '1' OR CAST(p.id AS INTEGER) IN ({extra_ids}))
           AND ps.id IS NOT NULL
           {" ".join(extra)}
         ORDER BY CAST(p.id AS INTEGER)
@@ -211,7 +260,7 @@ def main():
 
     mega_count = 0
     for i, mon in enumerate(team, 1):
-        name = mon["identifier"].replace("-", " ").title()
+        name = display_name(mon["identifier"])
         types = "/".join(t.capitalize() for t in mon["types"])
         mega_tag = " ★" if mon["is_mega_capable"] else "  "
         slot_tag = "[core]" if i <= 3 else "[free]"
